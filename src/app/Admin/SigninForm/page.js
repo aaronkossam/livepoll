@@ -70,9 +70,6 @@ const AdminSignin = () => {
               <CardDescription>
                 Enter your email below to login to your account
               </CardDescription>
-              <CardAction>
-                <Button variant="link">Sign Up</Button>
-              </CardAction>
             </CardHeader>
             <CardContent>
               <form>
@@ -99,16 +96,12 @@ const AdminSignin = () => {
                     <Input id="password" type="password" required />
                   </div>
                 </div>
+                <Button type="submit" className="mt-3.5 w-full">
+                  Login
+                </Button>
               </form>
             </CardContent>
-            <CardFooter className="flex-col gap-2">
-              <Button type="submit" className="w-full">
-                Login
-              </Button>
-              <Button variant="outline" className="w-full">
-                Login with Google
-              </Button>
-            </CardFooter>
+            <CardFooter className="flex-col gap-2"></CardFooter>
           </Card>
         </div>
       </div>

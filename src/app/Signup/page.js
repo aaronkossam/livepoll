@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-const SigninForm = () => {
+const Signup = () => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const handleSubmit = async (e) => {
@@ -45,13 +45,17 @@ const SigninForm = () => {
     <div>
       <Card className="w-full xl:w-screen 2xl:w-screen xl:max-w-sm 2xl:max-w-3xl 2xl:max-h-lvh  max-w-sm">
         <CardHeader>
-          <CardTitle>Login to your staff account</CardTitle>
+          <CardTitle>Sign up tp create a staff account</CardTitle>
           <CardDescription>
             Enter your email below to login to your account
           </CardDescription>
-          <CardAction className="-mt-2">
-            <Link className=" underline" href="/Signup" variant="link">
-              Sign Up
+          <CardAction>
+            <Link
+              href="/clientSignInForm"
+              className="underline -mt-3.5"
+              variant="link"
+            >
+              Login{" "}
             </Link>
           </CardAction>
         </CardHeader>
@@ -87,7 +91,7 @@ const SigninForm = () => {
               </div>
             </div>
             <Button type="submit" className=" mt-3.5 w-full">
-              Login
+              Sign up
             </Button>
           </form>
         </CardContent>
@@ -96,4 +100,4 @@ const SigninForm = () => {
   );
 };
 
-export default SigninForm;
+export default Signup;
