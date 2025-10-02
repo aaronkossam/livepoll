@@ -43,7 +43,7 @@ const SigninForm = () => {
 
   return (
     <div>
-      <Card className="w-full xl:w-screen 2xl:w-screen xl:max-w-sm 2xl:max-w-3xl 2xl:max-h-lvh  max-w-sm">
+      <Card className="w-lvw xl:w-screen   xl:max-w-dvh 2xl:w-5xl  2xl:max-h-lvh  max-w-sm">
         <CardHeader>
           <CardTitle>Login to your staff account</CardTitle>
           <CardDescription>

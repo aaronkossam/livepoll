@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import Router from "next/router";
 
 import Link from "next/link";
 const Signup = () => {
@@ -23,7 +24,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/Login", {
+      const response = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -31,15 +32,14 @@ const Signup = () => {
           password,
         }),
       });
+      Router.push("/");
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Login failed");
+        throw new Error(data.error || "Sign up failed");
       }
-
-      router.push("/PartnershipPage"); // Adjust to your desired redirect
     } catch (error) {
-      setError(error.message || "An error occurred during login");
+      setError(error.message || "An error occurred during sign up");
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ const Signup = () => {
       }}
       className="bg-cover bg-center h-screen "
     >
-      <div className="pt-16 xl:pt-0 xl:justify-end 2xl:pt-64 xl:pr-14 xl:grid ">
+      <div className="pt-16 xl:pt-14 xl:justify-end 2xl:pr-80 2xl:pt-72 xl:pr-40 xl:grid ">
         {/* {container} */}
         <div className="pt-16 ">
           {/* Title */}
@@ -64,7 +64,7 @@ const Signup = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <p className="text-6xl font-black">HDEX INC</p>
+            <p className="text-6xl  font-black">HDEX INC</p>
             <span className="italic  ">Create your Staff Account </span>
           </motion.div>
         </div>
@@ -77,18 +77,14 @@ const Signup = () => {
           transition={{ delay: 1, duration: 0.8 }}
         ></motion.div>
 
-        <Card className="w-full xl:w-screen  2xl:w-screen xl:max-w-sm 2xl:max-w-3xl 2xl:max-h-lvh  max-w-sm">
+        <Card className="w-full xl:w-screen  2xl:w-screen xl:max-w-dvh 2xl:max-w-3xl 2xl:max-h-lvh  max-w-sm">
           <CardHeader>
             <CardTitle>Sign up tp create a staff account</CardTitle>
             <CardDescription>
               Enter your email below to login to your account
             </CardDescription>
             <CardAction>
-              <Link
-                href="/clientSignInForm"
-                className="underline -mt-3.5"
-                variant="link"
-              >
+              <Link href="/" className="underline -mt-3.5" variant="link">
                 Login{" "}
               </Link>
             </CardAction>

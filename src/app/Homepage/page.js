@@ -15,7 +15,7 @@ const Homepage = () => {
       }}
       className="bg-cover bg-center h-screen "
     >
-      <div className="pt-16 xl:pt-0 xl:justify-end 2xl:pt-64 xl:pr-14 xl:grid ">
+      <div className="pt-16 xl:pt-0 xl:justify-end 2xl:pt-64 justify-center flex xl:pr-14 xl:grid  ">
         {/* {container} */}
         <div className="pt-16 ">
           {/* Title */}
@@ -25,8 +25,8 @@ const Homepage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <p className="text-6xl font-black">HDEX INC</p>
-            <span className="italic">Live Poll Portal</span>
+            <p className="text-6xl  2xl:text-8xl font-black">HDEX INC</p>
+            <span className="italic 2xl:text-5xl">Live Poll Portal</span>
           </motion.div>
 
           {/* Options (Staff/Admin) */}
@@ -61,7 +61,7 @@ const Homepage = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
           >
-            <SigninForm className=" pr-1 pl-1   " />
+            <SigninForm className="   " />
           </motion.div>
         </div>
       </div>

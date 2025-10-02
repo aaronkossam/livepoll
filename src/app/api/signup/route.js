@@ -11,12 +11,11 @@ export async function POST(request) {
     // Validate inputs
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { error: "All fields are required" },
         { status: 400 }
       );
     }
 
-    // Basic email format validation
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       return NextResponse.json(
         { error: "Invalid email format" },
@@ -24,33 +23,33 @@ export async function POST(request) {
       );
     }
 
-    // Find user
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
+    // Check for existing user
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
       return NextResponse.json(
-        { error: "No user found with this email" },
-        { status: 401 }
+        { error: "Email already registered" },
+        { status: 400 }
       );
     }
 
-    // Verify password
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return NextResponse.json({ error: "Invalid password" }, { status: 401 });
-    }
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Return token and user info
+    // Create user
+    const user = new User({
+      email: email.toLowerCase(),
+      password: hashedPassword,
+    });
+    await user.save();
+
     return NextResponse.json(
-      {
-        message: "Login successful",
-        user: { id: user._id, email: user.email },
-      },
+      { message: "Registration successful, login" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Login Error:", error);
+    console.error("API Error:", error);
     return NextResponse.json(
-      { error: "An error occurred during login. Please try again." },
+      { error: "Registration failed: " + error.message },
       { status: 500 }
     );
   }
