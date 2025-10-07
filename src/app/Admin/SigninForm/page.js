@@ -6,43 +6,41 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-const AdminSignin = () => {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [error, setError] = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
+
+const SigninForm = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+
     try {
       const response = await fetch("/api/Login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Login failed");
-      }
+      if (!response.ok) throw new Error(data.error || "Login failed");
 
-      // router.push("/Dashboard"); // Adjust to your desired redirect
-      window.location.href = "/Dashboard";
-    } catch (error) {
-      setError(error.message || "An error occurred during login");
+      router.push("/Admin/Dashboard");
+    } catch (err) {
+      setError(err.message || "An error occurred during login");
     } finally {
       setLoading(false);
     }
@@ -55,10 +53,10 @@ const AdminSignin = () => {
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
-      className="bg-cover bg-center h-screen "
+      className="bg-cover bg-center h-screen"
     >
-      <div className="pt-16 xl:pt-11 xl:justify-end justify-center grid xl:pr-14 2xl:pt-80 xl:grid ">
-        {/* {container} */}
+      <div className="pt-16 xl:pt-11 lg:justify-end justify-center grid lg:pr-14 2xl:pt-80 xl:grid">
+        {/* Title */}
         <motion.div
           className="text-center"
           initial={{ opacity: 0, y: -50 }}
@@ -69,7 +67,7 @@ const AdminSignin = () => {
           <span className="italic 2xl:text-5xl">Live Poll Portal</span>
         </motion.div>
 
-        {/* Options (Staff/Admin) */}
+        {/* Staff/Admin toggle */}
         <motion.div
           className="flex gap-10 justify-center pt-3 pb-2"
           initial={{ opacity: 0, y: 50 }}
@@ -80,7 +78,7 @@ const AdminSignin = () => {
             Staff
             <div>
               <Link href="/">
-                <Checkbox enabled />
+                <Checkbox />
               </Link>
             </div>
           </p>
@@ -88,14 +86,15 @@ const AdminSignin = () => {
             Admin
             <div>
               <Link href="/Admin/SigninForm">
-                <Checkbox checkdefault />
+                <Checkbox checked readOnly />
               </Link>
             </div>
           </p>
         </motion.div>
 
-        <div className=" pr-1 pl-1  ">
-          <Card className="w-lvw xl:w-screen  xl:max-w-dvh 2xl:w-5xl 2xl:max-h-lvh  max-w-sm">
+        {/* Login form */}
+        <div className="pr-1 pl-1">
+          <Card className="w-lvw  lg:max-w-dvh 2xl:w-5xl 2xl:max-h-lvh  max-w-sm">
             <CardHeader>
               <CardTitle>Login to your Admin account</CardTitle>
               <CardDescription>
@@ -103,15 +102,16 @@ const AdminSignin = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onClick={handleSubmit}>
+              <form onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
-                      onChange={(e) => setEmail(e.target.value)}
                       id="email"
                       type="email"
                       placeholder="m@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       required
                     />
                   </div>
@@ -126,15 +126,27 @@ const AdminSignin = () => {
                       </a>
                     </div>
                     <Input
-                      onChange={(e) => setPassword(e.target.value)}
                       id="password"
                       type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       required
                     />
                   </div>
                 </div>
-                <Button type="submit" className="mt-3.5 w-full">
-                  Login
+
+                {error && (
+                  <p className="text-red-500 text-sm mt-2 text-center">
+                    {error}
+                  </p>
+                )}
+
+                <Button
+                  type="submit"
+                  className="mt-3.5 w-full"
+                  disabled={loading}
+                >
+                  {loading ? "Logging in..." : "Login"}
                 </Button>
               </form>
             </CardContent>
@@ -146,4 +158,4 @@ const AdminSignin = () => {
   );
 };
 
-export default AdminSignin;
+export default SigninForm;

@@ -2,10 +2,17 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Checkbox } from "@/components/ui/checkbox";
-import SigninForm from "./clientSignInForm/page";
+import SigninForm from "../User/clientSignInForm/page";
 import AdminSignin from "../Admin/SigninForm/page";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 const Homepage = () => {
+  const pathname = usePathname();
+
+  const isAdminPage = pathname.startsWith("/Admin");
+  const isStaffPage = pathname === "/";
+
   return (
     <div
       style={{
@@ -13,11 +20,10 @@ const Homepage = () => {
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
-      className="bg-cover bg-center h-screen "
+      className="bg-cover bg-center h-screen"
     >
-      <div className="pt-16 xl:pt-0 xl:justify-end 2xl:pt-64 justify-center flex xl:pr-14 xl:grid  ">
-        {/* {container} */}
-        <div className="pt-16 ">
+      <div className="xl:justify-end 2xl:pt-64 justify-center flex 2xl:pr-14 lg:justify-end lg:pr-7">
+        <div className="pt-16">
           {/* Title */}
           <motion.div
             className="text-center"
@@ -25,7 +31,7 @@ const Homepage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <p className="text-6xl  2xl:text-8xl font-black">HDEX INC</p>
+            <p className="text-6xl 2xl:text-8xl font-black">HDEX INC</p>
             <span className="italic 2xl:text-5xl">Live Poll Portal</span>
           </motion.div>
 
@@ -36,22 +42,21 @@ const Homepage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           >
-            <p className="grid gap-2 grid-cols-2 text-[20px]">
-              Staff
-              <div>
-                <Link href="/">
-                  <Checkbox checkdefault />
-                </Link>
-              </div>
-            </p>
-            <p className="grid gap-2 grid-cols-2 text-[20px]">
-              Admin
-              <div>
-                <Link href="/Admin/SigninForm">
-                  <Checkbox enabled />
-                </Link>
-              </div>
-            </p>
+            {/* Staff Option */}
+            <div className="grid gap-2 grid-cols-2 text-[20px] items-center">
+              <span>Staff</span>
+              <Link href="/">
+                <Checkbox checked={isStaffPage} readOnly />
+              </Link>
+            </div>
+
+            {/* Admin Option */}
+            <div className="grid gap-2 grid-cols-2 text-[20px] items-center">
+              <span>Admin</span>
+              <Link href="/Admin/SigninForm">
+                <Checkbox checked={isAdminPage} readOnly />
+              </Link>
+            </div>
           </motion.div>
 
           {/* SigninForm */}
@@ -61,7 +66,7 @@ const Homepage = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
           >
-            <SigninForm className="   " />
+            {isAdminPage ? <AdminSignin /> : <SigninForm />}
           </motion.div>
         </div>
       </div>

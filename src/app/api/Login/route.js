@@ -1,57 +1,42 @@
-import connectToDatabase from "../../../lib/db";
-import User from "../../../models/users";
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
+import connectToDatabase from "@/lib/db";
+import User from "@/models/users";
 
-export async function POST(request) {
+export async function POST(req) {
   try {
+    const { email, password } = await req.json();
+
+    // Ensure database connection
     await connectToDatabase();
-    const { email, password } = await request.json();
 
-    // Validate inputs
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
-    }
-
-    // Basic email format validation
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      );
-    }
-
-    // Find user
+    // Find user by email (always lowercase)
     const user = await User.findOne({ email: email.toLowerCase() });
+
     if (!user) {
+      console.log("No user found for email:", email);
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Compare hashed password
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
       return NextResponse.json(
-        { error: "No user found with this email" },
+        { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    // Verify password
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return NextResponse.json({ error: "Invalid password" }, { status: 401 });
-    }
+    // Redirect based on role
+    const redirect = user.role === "admin" ? "/Admin/Dashboard" : "/Dashboard";
 
-    // Return token and user info
-    return NextResponse.json(
-      {
-        message: "Login successful",
-        user: { id: user._id, email: user.email },
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Login Error:", error);
-    return NextResponse.json(
-      { error: "An error occurred during login. Please try again." },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: true,
+      role: user.role,
+      redirect,
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
