@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { BarChart3, Plus, Trash2, TrendingUp } from "lucide-react";
 import io from "socket.io-client";
 import axios from "axios";
-import PollCard from "../../Pollcard/page";
+import PollCard from "../../PollCard/page";
 
 const socket = io("http://localhost:5000");
 
