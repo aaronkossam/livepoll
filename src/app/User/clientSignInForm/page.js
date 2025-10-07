@@ -40,7 +40,7 @@ const ClientSignInForm = () => {
       }
 
       // Redirect based on backend response
-      router.push(data.redirect || "/UserDashboard");
+      router.push(data.redirect || "/User/UserDashboard");
     } catch (error) {
       setError(error.message || "An error occurred during login");
     } finally {
