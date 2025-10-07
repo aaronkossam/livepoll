@@ -2,28 +2,36 @@ const express = require("express");
 const mongoose = require("mongoose");
 const http = require("http");
 const { Server } = require("socket.io");
+const next = require("next");
 const cors = require("cors");
+
+// Detect environment
+const dev = process.env.NODE_ENV !== "production";
+const nextApp = next({ dev });
+const handle = nextApp.getRequestHandler();
 
 const app = express();
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Allow Next.js frontend
+    origin: "*", // Allow all for now — restrict later if needed
     methods: ["GET", "POST"],
   },
 });
 
-app.use(cors({ origin: "http://localhost:3000" }));
+// Middlewares
+app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
+// MongoDB connection (⚠️ use environment variable for security)
 mongoose
-  .connect("mongodb://localhost:27017/poll-app", {
+  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/poll-app", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // Poll Schema
 const pollSchema = new mongoose.Schema({
@@ -40,7 +48,7 @@ app.get("/api/polls", async (req, res) => {
   try {
     const polls = await Poll.find().sort({ createdAt: -1 });
     res.json(polls);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -56,13 +64,12 @@ app.post("/api/polls", async (req, res) => {
     question,
     options,
     counts: new Array(options.length).fill(0),
-    totalVotes: 0,
   });
   try {
     const savedPoll = await poll.save();
     io.emit("pollCreated", savedPoll);
     res.status(201).json(savedPoll);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -79,18 +86,25 @@ app.post("/api/polls/:id/vote", async (req, res) => {
     await poll.save();
     io.emit("voteUpdate", poll);
     res.json(poll);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// Socket.IO connection
+// Socket.IO
 io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
+  console.log("🟢 Client connected:", socket.id);
   socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+    console.log("🔴 Client disconnected:", socket.id);
   });
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Integrate Next.js frontend
+nextApp.prepare().then(() => {
+  app.all("*", (req, res) => handle(req, res));
+
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () =>
+    console.log(`🚀 Server running on http://localhost:${PORT}`)
+  );
+});
