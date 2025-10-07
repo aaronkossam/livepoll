@@ -49,11 +49,15 @@ const SigninForm = () => {
   return (
     <div
       style={{
-        backgroundImage: 'url("/Artboard 3.jpg")',
+        backgroundImage: `
+      linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+      url("/Artboard 3.jpg")
+    `,
         backgroundSize: "cover",
         backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
-      className="bg-cover bg-center h-screen"
+      className="bg-cover bg-center h-screen text-white"
     >
       <div className="pt-16 xl:pt-11 lg:justify-end justify-center grid lg:pr-14 2xl:pt-80 xl:grid">
         {/* Title */}
@@ -74,7 +78,7 @@ const SigninForm = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.8 }}
         >
-          <p className="grid gap-2 justify-center grid-cols-2 text-[20px]">
+          <p className="grid gap-2 justify-center pl-9 grid-cols-2 text-[20px]">
             Staff
             <div>
               <Link href="/">

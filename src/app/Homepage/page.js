@@ -16,11 +16,15 @@ const Homepage = () => {
   return (
     <div
       style={{
-        backgroundImage: 'url("/Artboard 3.jpg")',
+        backgroundImage: `
+      linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+      url("/Artboard 3.jpg")
+    `,
         backgroundSize: "cover",
         backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
-      className="bg-cover bg-center h-screen"
+      className="bg-cover bg-center h-screen text-white"
     >
       <div className="xl:justify-end 2xl:pt-64 justify-center flex 2xl:pr-14 lg:justify-end lg:pr-7">
         <div className="pt-16">
@@ -43,7 +47,7 @@ const Homepage = () => {
             transition={{ delay: 0.5, duration: 0.8 }}
           >
             {/* Staff Option */}
-            <div className="grid gap-2 grid-cols-2 text-[20px] items-center">
+            <div className="grid gap-2 grid-cols-2 pl-9  text-[20px] items-center">
               <span>Staff</span>
               <Link href="/">
                 <Checkbox checked={isStaffPage} readOnly />
