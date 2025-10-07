@@ -28,7 +28,7 @@ export async function POST(req) {
     }
 
     // Redirect based on role
-    const redirect = user.role === "admin" ? "/Admin/Dashboard" : "/Dashboard";
+    // const redirect = user.role === "admin" ? "/Admin/Dashboard" : "/Dashboard";
 
     return NextResponse.json({
       success: true,

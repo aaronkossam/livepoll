@@ -54,7 +54,7 @@ const Signup = () => {
       }}
       className="bg-cover bg-center h-screen "
     >
-      <div className="pt-16 xl:pt-14 xl:justify-end 2xl:pr-80 2xl:pt-72 xl:pr-40 xl:grid ">
+      <div className="pt-16 xl:pt-14 lg:justify-center xl:justify-end 2xl:pr-80 2xl:pt-72 xl:pr-40 xl:grid ">
         {/* {container} */}
         <div className="pt-16 ">
           {/* Title */}
@@ -77,7 +77,7 @@ const Signup = () => {
           transition={{ delay: 1, duration: 0.8 }}
         ></motion.div>
 
-        <Card className="w-full xl:w-screen  2xl:w-screen xl:max-w-dvh 2xl:max-w-3xl 2xl:max-h-lvh  max-w-sm">
+        <Card className="w-full xl:w-screen  2xl:w-screen xl:max-w-lvw 2xl:max-w-3xl 2xl:max-h-lvh  max-w-sm">
           <CardHeader>
             <CardTitle>Sign up tp create a staff account</CardTitle>
             <CardDescription>
