@@ -1,9 +1,20 @@
+"use client";
+
 import { Users } from "lucide-react";
 
 export default function PollCard({ poll, handleVote }) {
+  // ✅ Guard against missing poll data
+  if (!poll || !poll.counts || !poll.options) {
+    return (
+      <div className="p-6 bg-gray-50 rounded-2xl text-gray-500 text-center">
+        Loading poll...
+      </div>
+    );
+  }
+
   const maxVotes = Math.max(...poll.counts, 1);
   const hasVoted = handleVote
-    ? localStorage.getItem(`vote_${poll._id}`)
+    ? typeof window !== "undefined" && localStorage.getItem(`vote_${poll._id}`)
     : false;
 
   return (
@@ -14,13 +25,13 @@ export default function PollCard({ poll, handleVote }) {
         </h3>
         <div className="flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
           <Users className="w-4 h-4" />
-          <span className="font-medium">{poll.totalVotes}</span>
+          <span className="font-medium">{poll.totalVotes ?? 0}</span>
         </div>
       </div>
 
       <div className="space-y-3">
         {poll.options.map((option, idx) => {
-          const votes = poll.counts[idx];
+          const votes = poll.counts[idx] ?? 0;
           const percentage =
             poll.totalVotes > 0 ? (votes / poll.totalVotes) * 100 : 0;
           const isLeading = votes === maxVotes && votes > 0;
@@ -75,8 +86,12 @@ export default function PollCard({ poll, handleVote }) {
 
       <div className="mt-4 pt-4 border-t border-gray-100">
         <p className="text-xs text-gray-500">
-          Created {new Date(poll.createdAt).toLocaleDateString()} at{" "}
-          {new Date(poll.createdAt).toLocaleTimeString()}
+          Created{" "}
+          {poll.createdAt
+            ? `${new Date(poll.createdAt).toLocaleDateString()} at ${new Date(
+                poll.createdAt
+              ).toLocaleTimeString()}`
+            : "N/A"}
         </p>
       </div>
     </div>

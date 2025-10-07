@@ -1,6 +1,6 @@
 // app/api/polls/[id]/vote/route.js
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
+import connectToDatabase from "@/lib/db";
 import Poll from "@/models/polls";
 import { io as clientIo } from "socket.io-client";
 
@@ -15,7 +15,7 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    await connectDB();
+    await connectToDatabase();
     const poll = await Poll.findById(pollId);
     if (!poll)
       return NextResponse.json({ error: "Poll not found" }, { status: 404 });
