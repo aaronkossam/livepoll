@@ -1,10 +1,22 @@
 "use client";
 
 import { Users } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function PollCard({ poll, handleVote }) {
+  const [localPoll, setLocalPoll] = useState(poll);
+
+  // ✅ Keep local state in sync if poll updates from socket or re-render
+  useEffect(() => {
+    setLocalPoll(poll);
+  }, [poll]);
+
   // ✅ Guard against missing poll data
-  if (!poll || !poll.counts || !poll.options) {
+  if (
+    !localPoll ||
+    !Array.isArray(localPoll.options) ||
+    !Array.isArray(localPoll.counts)
+  ) {
     return (
       <div className="p-6 bg-gray-50 rounded-2xl text-gray-500 text-center">
         Loading poll...
@@ -12,42 +24,49 @@ export default function PollCard({ poll, handleVote }) {
     );
   }
 
-  const maxVotes = Math.max(...poll.counts, 1);
-  const hasVoted = handleVote
-    ? typeof window !== "undefined" && localStorage.getItem(`vote_${poll._id}`)
-    : false;
+  const totalVotes =
+    localPoll.totalVotes ??
+    localPoll.counts.reduce((sum, n) => sum + (n || 0), 0);
+  const maxVotes = Math.max(...localPoll.counts, 1);
+
+  const hasVoted =
+    handleVote &&
+    typeof window !== "undefined" &&
+    localStorage.getItem(`vote_${localPoll._id}`);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
+      {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-lg font-bold text-gray-900 flex-1">
-          {poll.question}
+          {localPoll.question}
         </h3>
         <div className="flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
           <Users className="w-4 h-4" />
-          <span className="font-medium">{poll.totalVotes ?? 0}</span>
+          <span className="font-medium">{totalVotes}</span>
         </div>
       </div>
 
+      {/* Options */}
       <div className="space-y-3">
-        {poll.options.map((option, idx) => {
-          const votes = poll.counts[idx] ?? 0;
-          const percentage =
-            poll.totalVotes > 0 ? (votes / poll.totalVotes) * 100 : 0;
+        {localPoll.options.map((option, idx) => {
+          const votes = localPoll.counts[idx] ?? 0;
+          const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
           const isLeading = votes === maxVotes && votes > 0;
 
           return (
             <div key={idx} className="group">
               <div className="flex items-center justify-between text-sm mb-1.5">
                 <div className="flex items-center gap-2">
+                  {/* Only show Vote button for staff or non-admin dashboards */}
                   {handleVote && (
                     <button
-                      onClick={() => handleVote(poll._id, idx)}
+                      onClick={() => handleVote(localPoll._id, idx)}
                       disabled={hasVoted}
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                         hasVoted
                           ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                          : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+                          : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
                       }`}
                     >
                       Vote
@@ -61,6 +80,7 @@ export default function PollCard({ poll, handleVote }) {
                     {option}
                   </span>
                 </div>
+
                 <span
                   className={`font-bold ${
                     isLeading ? "text-indigo-600" : "text-gray-600"
@@ -69,6 +89,8 @@ export default function PollCard({ poll, handleVote }) {
                   {votes} ({percentage.toFixed(1)}%)
                 </span>
               </div>
+
+              {/* Progress Bar */}
               <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${
@@ -84,15 +106,16 @@ export default function PollCard({ poll, handleVote }) {
         })}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <p className="text-xs text-gray-500">
-          Created{" "}
-          {poll.createdAt
-            ? `${new Date(poll.createdAt).toLocaleDateString()} at ${new Date(
-                poll.createdAt
-              ).toLocaleTimeString()}`
-            : "N/A"}
-        </p>
+      {/* Footer */}
+      <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
+        Created{" "}
+        {localPoll.createdAt
+          ? `${new Date(
+              localPoll.createdAt
+            ).toLocaleDateString()} at ${new Date(
+              localPoll.createdAt
+            ).toLocaleTimeString()}`
+          : "N/A"}
       </div>
     </div>
   );

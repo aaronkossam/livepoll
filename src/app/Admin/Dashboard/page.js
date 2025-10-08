@@ -1,13 +1,23 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { BarChart3, Plus, Trash2, TrendingUp } from "lucide-react";
 import io from "socket.io-client";
 import axios from "axios";
 import PollCard from "@/components/PollCard";
 
-const socket = io(
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000"
-);
+// ✅ Environment variables
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
+
+// ✅ Initialize Socket.IO client with fallback for Render/Vercel
+const socket = io(SOCKET_URL, {
+  transports: ["websocket", "polling"],
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 2000,
+});
 
 export default function AdminDashboard() {
   const [question, setQuestion] = useState("");
@@ -15,47 +25,68 @@ export default function AdminDashboard() {
   const [polls, setPolls] = useState([]);
   const [msg, setMsg] = useState({ text: "", type: "" });
 
+  // ✅ Load existing polls and set up socket events
   useEffect(() => {
-    // Fetch polls
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/polls`)
-      .then((response) => setPolls(response.data))
-      .catch((err) => console.error("Error fetching polls:", err));
+    // Initial fetch
+    const fetchPolls = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/polls`);
+        setPolls(res.data);
+      } catch (err) {
+        console.error("Error fetching polls:", err);
+      }
+    };
+    fetchPolls();
 
-    // Socket.IO listeners
-    socket.on("pollCreated", (newPoll) => {
+    // Socket events
+    const handleConnect = () => {
+      console.log("🟢 Admin socket connected:", socket.id);
+    };
+
+    const handleDisconnect = () => {
+      console.log("🔴 Admin socket disconnected");
+    };
+
+    const handlePollCreated = (newPoll) => {
+      console.log("📊 New poll received:", newPoll);
       setPolls((prev) => [newPoll, ...prev]);
-    });
+    };
 
-    socket.on("voteUpdate", (updatedPoll) => {
+    const handleVoteUpdate = (updatedPoll) => {
+      console.log("🔄 Vote update received:", updatedPoll);
       setPolls((prev) =>
-        prev.map((poll) => (poll._id === updatedPoll._id ? updatedPoll : poll))
+        prev.map((p) => (p._id === updatedPoll._id ? updatedPoll : p))
       );
-    });
+    };
 
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    socket.on("pollCreated", handlePollCreated);
+    socket.on("voteUpdate", handleVoteUpdate);
+
+    // Cleanup
     return () => {
-      socket.off("pollCreated");
-      socket.off("voteUpdate");
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      socket.off("pollCreated", handlePollCreated);
+      socket.off("voteUpdate", handleVoteUpdate);
     };
   }, []);
 
-  function addOption() {
-    if (options.length < 6) {
-      setOptions((prev) => [...prev, ""]);
-    }
-  }
+  // ✅ Poll creation logic
+  const addOption = () => {
+    if (options.length < 6) setOptions([...options, ""]);
+  };
 
-  function removeOption(i) {
-    if (options.length > 2) {
-      setOptions((prev) => prev.filter((_, idx) => idx !== i));
-    }
-  }
+  const removeOption = (i) => {
+    if (options.length > 2) setOptions(options.filter((_, idx) => idx !== i));
+  };
 
-  function setOption(i, v) {
-    setOptions((prev) => prev.map((o, idx) => (idx === i ? v : o)));
-  }
+  const setOption = (i, v) => {
+    setOptions(options.map((opt, idx) => (idx === i ? v : opt)));
+  };
 
-  async function submit(e) {
+  const submit = async (e) => {
     e.preventDefault();
     setMsg({ text: "", type: "" });
 
@@ -69,22 +100,25 @@ export default function AdminDashboard() {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/polls", {
+      await axios.post(`${API_URL}/api/polls`, {
         question: question.trim(),
         options: cleanOptions,
       });
       setQuestion("");
       setOptions(["", ""]);
       setMsg({ text: "Poll created successfully! 🎉", type: "success" });
-      setTimeout(() => setMsg({ text: "", type: "" }), 3000);
     } catch (err) {
+      console.error("Create poll error:", err);
       setMsg({ text: "Failed to create poll", type: "error" });
+    } finally {
+      setTimeout(() => setMsg({ text: "", type: "" }), 3000);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-6xl mx-auto p-6 lg:p-8">
+        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
@@ -102,6 +136,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
+          {/* Create Poll */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 lg:p-8 h-fit">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -112,7 +147,7 @@ export default function AdminDashboard() {
               </h2>
             </div>
 
-            <div className="space-y-4">
+            <form className="space-y-4" onSubmit={submit}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Question
@@ -162,28 +197,28 @@ export default function AdminDashboard() {
                   + Add Option
                 </button>
                 <button
-                  type="button"
-                  onClick={submit}
+                  type="submit"
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:scale-105 transition-all font-medium"
                 >
                   Create Poll
                 </button>
               </div>
+            </form>
 
-              {msg.text && (
-                <div
-                  className={`p-4 rounded-xl ${
-                    msg.type === "success"
-                      ? "bg-green-50 text-green-700 border border-green-200"
-                      : "bg-red-50 text-red-700 border border-red-200"
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              )}
-            </div>
+            {msg.text && (
+              <div
+                className={`p-4 rounded-xl mt-4 ${
+                  msg.type === "success"
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
+              >
+                {msg.text}
+              </div>
+            )}
           </div>
 
+          {/* Active Polls */}
           <div className="space-y-6">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
