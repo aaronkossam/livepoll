@@ -5,40 +5,42 @@ import io from "socket.io-client";
 import axios from "axios";
 import PollCard from "@/components/PollCard";
 
-// Dynamically choose backend URL
-const isLocal = process.env.NODE_ENV !== "production";
-const API_URL = isLocal
-  ? "http://localhost:5000"
-  : process.env.NEXT_PUBLIC_API_URL;
+// ✅ Always define API URLs explicitly
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
 
-const SOCKET_URL = isLocal
-  ? "http://localhost:5000"
-  : process.env.NEXT_PUBLIC_SOCKET_URL;
-
-const socket = io(SOCKET_URL, { transports: ["websocket"] });
+// ✅ Include both transports for Render compatibility
+const socket = io(SOCKET_URL, {
+  transports: ["websocket", "polling"],
+});
 
 export default function StaffPage() {
   const [polls, setPolls] = useState([]);
   const [msg, setMsg] = useState({ text: "", type: "" });
 
   useEffect(() => {
-    // Fetch polls from backend
+    // ✅ Fetch all active polls from backend
     axios
       .get(`${API_URL}/api/polls`)
-      .then((response) => setPolls(response.data))
+      .then((response) => {
+        setPolls(response.data);
+      })
       .catch((err) => console.error("Error fetching polls:", err));
 
-    // Listen for real-time updates
+    // ✅ Listen for poll creation (admin adds new)
     socket.on("pollCreated", (newPoll) => {
       setPolls((prev) => [newPoll, ...prev]);
     });
 
+    // ✅ Listen for vote updates (real-time results)
     socket.on("voteUpdate", (updatedPoll) => {
       setPolls((prev) =>
         prev.map((poll) => (poll._id === updatedPoll._id ? updatedPoll : poll))
       );
     });
 
+    // ✅ Cleanup on unmount
     return () => {
       socket.off("pollCreated");
       socket.off("voteUpdate");
@@ -47,15 +49,16 @@ export default function StaffPage() {
 
   async function handleVote(pollId, optionIndex) {
     if (localStorage.getItem(`vote_${pollId}`)) {
-      setMsg({ text: "You have already voted on this poll!", type: "error" });
+      setMsg({ text: "You’ve already voted on this poll!", type: "error" });
       setTimeout(() => setMsg({ text: "", type: "" }), 3000);
       return;
     }
 
     try {
-      await axios.post(`${API_URL}/api/polls/${pollId}/vote`, { optionIndex });
+      // ✅ Match backend route exactly
+      await axios.post(`${API_URL}/api/polls/vote/${pollId}`, { optionIndex });
       localStorage.setItem(`vote_${pollId}`, "true");
-      setMsg({ text: "Vote submitted successfully! 🎉", type: "success" });
+      setMsg({ text: "Vote submitted successfully 🎉", type: "success" });
     } catch (err) {
       console.error("Vote error:", err);
       setMsg({ text: "Failed to submit vote", type: "error" });
@@ -75,25 +78,27 @@ export default function StaffPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Staff Polls</h1>
               <p className="text-gray-600">
-                Vote on active polls and see real-time results
+                Vote on active polls and see results update live
               </p>
             </div>
           </div>
         </div>
 
-        <div className="space-y-6">
-          {msg.text && (
-            <div
-              className={`p-4 rounded-xl ${
-                msg.type === "success"
-                  ? "bg-green-50 text-green-700 border border-green-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
-              }`}
-            >
-              {msg.text}
-            </div>
-          )}
+        {/* Feedback Message */}
+        {msg.text && (
+          <div
+            className={`p-4 rounded-xl mb-4 ${
+              msg.type === "success"
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+            }`}
+          >
+            {msg.text}
+          </div>
+        )}
 
+        {/* Polls */}
+        <div className="space-y-6">
           {polls.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
