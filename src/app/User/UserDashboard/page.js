@@ -5,21 +5,30 @@ import io from "socket.io-client";
 import axios from "axios";
 import PollCard from "@/components/PollCard";
 
-const socket = io(
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000"
-);
+// Dynamically choose backend URL
+const isLocal = process.env.NODE_ENV !== "production";
+const API_URL = isLocal
+  ? "http://localhost:5000"
+  : process.env.NEXT_PUBLIC_API_URL;
+
+const SOCKET_URL = isLocal
+  ? "http://localhost:5000"
+  : process.env.NEXT_PUBLIC_SOCKET_URL;
+
+const socket = io(SOCKET_URL, { transports: ["websocket"] });
+
 export default function StaffPage() {
   const [polls, setPolls] = useState([]);
   const [msg, setMsg] = useState({ text: "", type: "" });
 
   useEffect(() => {
-    // Fetch polls
+    // Fetch polls from backend
     axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/polls`)
+      .get(`${API_URL}/api/polls`)
       .then((response) => setPolls(response.data))
       .catch((err) => console.error("Error fetching polls:", err));
 
-    // Socket.IO listeners
+    // Listen for real-time updates
     socket.on("pollCreated", (newPoll) => {
       setPolls((prev) => [newPoll, ...prev]);
     });
@@ -44,14 +53,13 @@ export default function StaffPage() {
     }
 
     try {
-      await axios.post(`http://localhost:5000/api/polls/${pollId}/vote`, {
-        optionIndex,
-      });
+      await axios.post(`${API_URL}/api/polls/${pollId}/vote`, { optionIndex });
       localStorage.setItem(`vote_${pollId}`, "true");
       setMsg({ text: "Vote submitted successfully! 🎉", type: "success" });
-      setTimeout(() => setMsg({ text: "", type: "" }), 3000);
     } catch (err) {
+      console.error("Vote error:", err);
       setMsg({ text: "Failed to submit vote", type: "error" });
+    } finally {
       setTimeout(() => setMsg({ text: "", type: "" }), 3000);
     }
   }
