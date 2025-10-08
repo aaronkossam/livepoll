@@ -1,43 +1,44 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { motion } from "framer-motion";
-
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import Link from "next/link";
 import Router from "next/router";
 
-import Link from "next/link";
-const Signup = () => {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
+export default function Signup() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
+
     try {
       const response = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify({ email, password }),
       });
-      Router.push("/");
 
       const data = await response.json();
+
       if (!response.ok) {
         throw new Error(data.error || "Sign up failed");
       }
+
+      Router.push("/");
     } catch (error) {
       setError(error.message || "An error occurred during sign up");
     } finally {
@@ -47,88 +48,98 @@ const Signup = () => {
 
   return (
     <div
-      style={{
-        backgroundImage: 'url("/Artboard 1.jpg")',
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-      className="bg-cover bg-center h-screen "
+      className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
+      style={{ backgroundImage: 'url("/Artboard 1.jpg")' }}
     >
-      <div className="pt-16 xl:pt-14 lg:justify-center xl:justify-end 2xl:pr-80 2xl:pt-72 xl:pr-40 xl:grid ">
-        {/* {container} */}
-        <div className="pt-16 ">
-          {/* Title */}
-          <motion.div
-            className="text-center"
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <p className="text-6xl  font-black">HDEX INC</p>
-            <span className="italic  ">Create your Staff Account </span>
-          </motion.div>
-        </div>
+      {/* Dark overlay for better contrast */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-        {/* SigninForm */}
+      <motion.div
+        className="relative z-10 max-w-md w-full p-6"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {/* Logo / Header */}
         <motion.div
-          className="pr-1 pl-1"
+          className="text-center mb-8 text-white"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h1 className="text-5xl font-extrabold tracking-tight">HDEX INC</h1>
+          <p className="text-sm italic text-gray-200 mt-2">
+            Create your staff account to get started
+          </p>
+        </motion.div>
+
+        {/* Signup Card */}
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1, duration: 0.8 }}
-        ></motion.div>
-
-        <Card className="w-full xl:w-screen  2xl:w-screen xl:max-w-lvw 2xl:max-w-3xl 2xl:max-h-lvh  max-w-sm">
-          <CardHeader>
-            <CardTitle>Sign up tp create a staff account</CardTitle>
-            <CardDescription>
-              Enter your email below to login to your account
-            </CardDescription>
-            <CardAction>
-              <Link href="/" className="underline -mt-3.5" variant="link">
-                Login{" "}
-              </Link>
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <Card className="bg-white/90 backdrop-blur-md shadow-2xl border border-white/30 rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-gray-900">
+                Create an Account
+              </CardTitle>
+              <CardDescription>
+                Enter your credentials to sign up
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
-                    onChange={(e) => setEmail(e.target.value)}
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="you@example.com"
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
-                <div className="grid gap-2">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <a
-                      href="#"
-                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                    >
-                      Forgot your password?
-                    </a>
-                  </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
-                    onChange={(e) => setPassword(e.target.value)}
                     type="password"
+                    placeholder="••••••••"
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
-              </div>
-              <Button type="submit" className=" mt-3.5 w-full">
-                Sign up
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+
+                {error && (
+                  <p className="text-sm text-red-500 bg-red-50 p-2 rounded-md border border-red-200">
+                    {error}
+                  </p>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-xl py-3 transition-all"
+                >
+                  {loading ? "Creating Account..." : "Sign Up"}
+                </Button>
+
+                <p className="text-center text-sm text-gray-600 mt-3">
+                  Already have an account?{" "}
+                  <Link
+                    href="/"
+                    className="text-indigo-600 hover:underline font-medium"
+                  >
+                    Log in
+                  </Link>
+                </p>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
     </div>
   );
-};
-
-export default Signup;
+}
