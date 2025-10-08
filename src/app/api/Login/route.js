@@ -1,42 +1,22 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
-import connectToDatabase from "@/lib/db";
-import User from "@/models/users";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export async function POST(req) {
   try {
-    const { email, password } = await req.json();
+    const body = await req.json();
 
-    // Ensure database connection
-    await connectToDatabase();
-
-    // Find user by email (always lowercase)
-    const user = await User.findOne({ email: email.toLowerCase() });
-
-    if (!user) {
-      console.log("No user found for email:", email);
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Compare hashed password
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
-    }
-
-    // Redirect based on role
-    const redirect = user.role === "admin" ? "/Admin/Dashboard" : "/Dashboard";
-
-    return NextResponse.json({
-      success: true,
-      role: user.role,
-      redirect,
+    // Forward request to backend
+    const response = await fetch(`${BACKEND_URL}/api/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
+
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
   } catch (err) {
-    console.error("Login error:", err);
+    console.error("Error communicating with backend:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

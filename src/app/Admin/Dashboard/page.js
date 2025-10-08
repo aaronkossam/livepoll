@@ -5,7 +5,9 @@ import io from "socket.io-client";
 import axios from "axios";
 import PollCard from "@/components/PollCard";
 
-const socket = io("http://localhost:5000");
+const socket = io(
+  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000"
+);
 
 export default function AdminDashboard() {
   const [question, setQuestion] = useState("");
@@ -16,7 +18,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     // Fetch polls
     axios
-      .get("http://localhost:5000/api/polls")
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/polls`)
       .then((response) => setPolls(response.data))
       .catch((err) => console.error("Error fetching polls:", err));
 

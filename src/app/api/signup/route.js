@@ -1,56 +1,22 @@
-import connectToDatabase from "../../../lib/db";
-import User from "../../../models/users";
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 
-export async function POST(request) {
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+export async function POST(req) {
   try {
-    await connectToDatabase();
-    const { email, password } = await request.json();
+    const body = await req.json();
 
-    // Validate inputs
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "All fields are required" },
-        { status: 400 }
-      );
-    }
-
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      );
-    }
-
-    // Check for existing user
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "Email already registered" },
-        { status: 400 }
-      );
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const user = new User({
-      email: email.toLowerCase(),
-      password: hashedPassword,
+    // Forward signup request to backend API
+    const response = await fetch(`${BACKEND_URL}/api/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
-    await user.save();
 
-    return NextResponse.json(
-      { message: "Registration successful, login" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("API Error:", error);
-    return NextResponse.json(
-      { error: "Registration failed: " + error.message },
-      { status: 500 }
-    );
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
+  } catch (err) {
+    console.error("Signup error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
