@@ -1,26 +1,16 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
+import Link from "next/link";
+
 import { useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 const SigninForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -47,117 +37,190 @@ const SigninForm = () => {
   };
 
   return (
-    <div
-      style={{
-        backgroundImage: `
-      linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-      url("/Artboard 3.jpg")
-    `,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-      className="bg-cover bg-center h-screen text-white"
-    >
-      <div className="pt-16 xl:pt-11 lg:justify-end justify-center grid lg:pr-14 2xl:pt-80 xl:grid">
-        {/* Title */}
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <p className="text-6xl 2xl:text-8xl font-black">HDEX INC</p>
-          <span className="italic 2xl:text-5xl">Live Poll Portal</span>
-        </motion.div>
-
-        {/* Staff/Admin toggle */}
+          className="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
         <motion.div
-          className="flex gap-10 justify-center pt-3 pb-2"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-        >
-          <p className="grid gap-2 justify-center pl-9 grid-cols-2 text-[20px]">
-            Staff
-            <div>
-              <Link href="/">
-                <Checkbox />
-              </Link>
-            </div>
-          </p>
-          <p className="grid gap-2 grid-cols-2 text-[20px]">
-            Admin
-            <div>
-              <Link href="/Admin/SigninForm">
-                <Checkbox checked readOnly />
-              </Link>
-            </div>
-          </p>
-        </motion.div>
-
-        {/* Login form */}
-        <div className="pr-1 pl-1">
-          <Card className="w-lvw  lg:max-w-dvh 2xl:w-5xl 2xl:max-h-lvh  max-w-sm">
-            <CardHeader>
-              <CardTitle>Login to your Admin account</CardTitle>
-              <CardDescription>
-                Enter your email below to login to your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit}>
-                <div className="flex flex-col gap-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="m@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="flex items-center">
-                      <Label htmlFor="password">Password</Label>
-                      <a
-                        href="#"
-                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                      >
-                        Forgot your password?
-                      </a>
-                    </div>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                {error && (
-                  <p className="text-red-500 text-sm mt-2 text-center">
-                    {error}
-                  </p>
-                )}
-
-                <Button
-                  type="submit"
-                  className="mt-3.5 w-full"
-                  disabled={loading}
-                >
-                  {loading ? "Logging in..." : "Login"}
-                </Button>
-              </form>
-            </CardContent>
-            <CardFooter className="flex-col gap-2"></CardFooter>
-          </Card>
-        </div>
+          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
       </div>
+
+      <div className="relative z-10 w-full max-w-6xl grid lg:grid-cols-2 gap-12 items-center">
+        <motion.div
+          className="text-center lg:text-left space-y-6"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <h1 className="text-6xl lg:text-7xl xl:text-8xl font-black text-white mb-4 tracking-tight">
+              HDX INC
+            </h1>
+            <p className="text-2xl lg:text-3xl text-purple-300 italic font-light">
+              Live Poll Portal
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="hidden lg:block space-y-4 text-gray-300"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            <p className="text-lg">Welcome back! Please login to continue.</p>
+            <div className="flex gap-2 items-center">
+              <div className="h-1 w-12 bg-purple-500 rounded"></div>
+              <span className="text-sm text-gray-400">
+                Secure Authentication
+              </span>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8 lg:p-10">
+            <div className="flex justify-center gap-6 mb-8"></div>
+
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {isAdmin ? "Admin Login" : "Staff Login"}
+              </h2>
+              <p className="text-gray-300 text-sm">
+                Enter your credentials to access your account
+              </p>
+            </div>
+
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label
+                  htmlFor="email"
+                  className="text-sm font-medium text-gray-200 block"
+                >
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-medium text-gray-200"
+                  >
+                    Password
+                  </label>
+                  <a
+                    href="#"
+                    className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+                  ></a>
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm"
+                >
+                  {error}
+                </motion.div>
+              )}
+
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg shadow-purple-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Logging in...
+                  </span>
+                ) : (
+                  "Login"
+                )}
+              </button>
+            </div>
+
+            {/* <div className="mt-6 text-center">
+              <p className="text-gray-400 text-sm">
+                Don&apos;t have an account?{" "}
+                <a
+                  href="#"
+                  className="text-purple-400 hover:text-purple-300 font-medium"
+                >
+                  Contact Administrator
+                </a>
+              </p>
+            </div> */}
+          </div>
+        </motion.div>
+      </div>
+
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 1, duration: 1.5 }}
+      />
     </div>
   );
 };
