@@ -1,29 +1,56 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import { BarChart3 } from "lucide-react";
 import io from "socket.io-client";
 import axios from "axios";
 import PollCard from "@/components/PollCard";
+import { useAuth } from "../../Context/AuthoContext";
+import Logout from "../logout/page";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const SOCKET_URL =
   process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
 
-const socket = io(SOCKET_URL, {
-  transports: ["websocket", "polling"],
-});
-
 export default function StaffPage() {
+  const { user } = useAuth();
   const [polls, setPolls] = useState([]);
   const [msg, setMsg] = useState({ text: "", type: "" });
   const [loading, setLoading] = useState(true);
+  const socketRef = useRef(null);
 
+  // ✅ Fetch polls from backend
   useEffect(() => {
+    let mounted = true;
     axios
       .get(`${API_URL}/api/polls`)
-      .then((response) => setPolls(response.data))
-      .catch((err) => console.error("❌ Error fetching polls:", err))
-      .finally(() => setLoading(false));
+      .then((response) => mounted && setPolls(response.data))
+      .catch((err) => console.error(" Error fetching polls:", err))
+      .finally(() => mounted && setLoading(false));
+    return () => (mounted = false);
+  }, []);
+
+  // ✅ Create new socket connection when user logs in
+  useEffect(() => {
+    if (!user) {
+      // No logged-in user — disconnect if needed
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      return;
+    }
+
+    // Create a socket specific to the logged-in user
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+      auth: { email: user.email }, // optional — identifies user to backend
+    });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log(` Connected to socket as ${user.email}`);
+    });
 
     socket.on("pollCreated", (newPoll) => {
       setPolls((prev) => [newPoll, ...prev]);
@@ -35,12 +62,17 @@ export default function StaffPage() {
       );
     });
 
-    return () => {
-      socket.off("pollCreated");
-      socket.off("voteUpdate");
-    };
-  }, []);
+    socket.on("disconnect", () => {
+      console.log(" Disconnected from socket");
+    });
 
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [user]); // ✅ re-run when user changes
+
+  // ✅ Handle voting
   async function handleVote(pollId, optionIndex) {
     if (localStorage.getItem(`vote_${pollId}`)) {
       showMsg("You’ve already voted on this poll!", "error");
@@ -48,12 +80,15 @@ export default function StaffPage() {
     }
 
     try {
-      await axios.post(`${API_URL}/api/polls/${pollId}/vote`, { optionIndex });
+      await axios.post(`${API_URL}/api/polls/${pollId}/vote`, {
+        optionIndex,
+        voterEmail: user?.email || "anonymous",
+      });
 
       localStorage.setItem(`vote_${pollId}`, "true");
-      showMsg("Vote submitted successfully 🎉", "success");
+      showMsg("Vote submitted successfully ", "success");
     } catch (err) {
-      console.error("Vote error:", err);
+      console.error(" Vote error:", err);
       showMsg("Failed to submit vote. Please try again.", "error");
     }
   }
@@ -63,6 +98,7 @@ export default function StaffPage() {
     setTimeout(() => setMsg({ text: "", type: "" }), 3000);
   }
 
+  // ✅ UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-4xl mx-auto p-6 lg:p-8">
@@ -94,7 +130,7 @@ export default function StaffPage() {
           </div>
         )}
 
-        {/* Polls Section */}
+        {/* Polls */}
         {loading ? (
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
             <p className="text-gray-500 animate-pulse">Loading polls...</p>
@@ -115,6 +151,7 @@ export default function StaffPage() {
             ))}
           </div>
         )}
+        <Logout className="mt-14" />
       </div>
     </div>
   );

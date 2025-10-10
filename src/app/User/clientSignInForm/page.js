@@ -3,12 +3,14 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "../../Context/AuthoContext";
 const ClientSignInForm = () => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const router = useRouter();
+  const { login } = useAuth();
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -26,6 +28,9 @@ const ClientSignInForm = () => {
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
       }
+
+      const userObj = { email: email.toLowerCase(), role: data.role };
+      login(userObj);
 
       // Redirect based on backend response
       router.push(data.redirect || "/User/StaffPage");
