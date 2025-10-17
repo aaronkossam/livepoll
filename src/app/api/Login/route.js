@@ -10,7 +10,7 @@ export async function POST(req) {
     const response = await fetch(`${BACKEND_URL}/api/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ email, password, role: "admin" }),
     });
 
     const data = await response.json();

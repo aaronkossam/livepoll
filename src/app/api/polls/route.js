@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://livepoll-backend-ttuy.onrender.com"; // your Render backend
+  "https://livepoll-backend-ttuy.onrender.com";
 
 export async function POST(req, { params }) {
   try {
