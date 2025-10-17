@@ -4,19 +4,45 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export async function POST(req) {
   try {
-    const body = await req.json();
+    const { email, password } = await req.json();
 
-    // Forward request to backend
-    const response = await fetch(`${BACKEND_URL}/api/login`, {
+    const responseAdmin = await fetch(`${BACKEND_URL}/api/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, role: "admin" }),
     });
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
-  } catch (err) {
-    console.error("Error communicating with backend:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    // For Staff login page
+    const responseUser = await fetch(`${BACKEND_URL}/api/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, role: "user" }),
+    });
+
+    const adminData = await responseAdmin.json().catch(() => null);
+    const userData = await responseUser.json().catch(() => null);
+
+    if (responseAdmin.ok) {
+      return NextResponse.json(adminData, { status: responseAdmin.status });
+    }
+    if (responseUser.ok) {
+      return NextResponse.json(userData, { status: responseUser.status });
+    }
+
+    return NextResponse.json(
+      {
+        error:
+          (adminData && adminData.error) ||
+          (userData && userData.error) ||
+          "Login failed",
+      },
+      { status: 401 }
+    );
+  } catch (error) {
+    console.error("Login error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
